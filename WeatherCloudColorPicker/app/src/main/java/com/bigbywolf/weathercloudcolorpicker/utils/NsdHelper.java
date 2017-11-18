@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bigbywolf.weathercloudcolorpicker;
+package com.bigbywolf.weathercloudcolorpicker.utils;
 
 import android.content.Context;
 import android.net.nsd.NsdServiceInfo;
@@ -33,6 +33,9 @@ public class NsdHelper {
     NsdManager.RegistrationListener mRegistrationListener;
 
     private ArrayList<NsdServiceInfo> foundServices = null;
+
+    Object lock = null;
+
 
     public static final String SERVICE_TYPE = "_http._tcp.";
 //    private static final String SERVICE_TYPE = "_services._dns-sd._udp";
@@ -56,7 +59,7 @@ public class NsdHelper {
         initializeResolveListener();
         initializeDiscoveryListener();
         initializeRegistrationListener();
-
+        lock = new Object();
         //mNsdManager.init(mContext.getMainLooper(), this);
 
     }
@@ -77,9 +80,6 @@ public class NsdHelper {
                 Log.d(TAG, "Service discovery success " + service);
 
                 foundServices.add(service);
-//                if (!foundServices.contains(service.getServiceName())){
-//                    foundServices.add(service);
-//                }
 //                if (!service.getServiceType().equals(SERVICE_TYPE)) {
 //                    Log.d(TAG, "Unknown Service Type: " + service.getServiceType() + " " + service.getServiceName());
 //                }
@@ -131,18 +131,25 @@ public class NsdHelper {
 
             @Override
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                Log.e(TAG, "Resolve failed " + errorCode);
+                synchronized (lock) {
+                    Log.e(TAG, "Resolve failed " + errorCode);
+                    mService = null;
+                    lock.notify();
+                }
             }
 
             @Override
             public void onServiceResolved(NsdServiceInfo serviceInfo) {
-                Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
+                synchronized (lock) {
+                    Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
 
-                if (serviceInfo.getServiceName().equals(mServiceName)) {
-                    Log.d(TAG, "Same IP.");
-                    return;
+//                if (serviceInfo.getServiceName().equals(mServiceName)) {
+//                    Log.d(TAG, "Same IP.");
+//                    return;
+//                }
+                    mService = serviceInfo;
+                    lock.notify();
                 }
-                mService = serviceInfo;
             }
         };
     }
@@ -186,7 +193,21 @@ public class NsdHelper {
         mNsdManager.discoverServices(
                 SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
     }
-    
+
+    public NsdServiceInfo resolveFoundService(NsdServiceInfo service){
+        synchronized (lock){
+
+            try {
+                mNsdManager.resolveService(service, mResolveListener);
+                lock.wait(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return mService;
+    }
+
     public void stopDiscovery() {
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
     }

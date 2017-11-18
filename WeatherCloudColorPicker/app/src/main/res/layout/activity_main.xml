@@ -8,7 +8,7 @@
 
     <Spinner
         android:id="@+id/deviceSpinner"
-        android:layout_width="300dp"
+        android:layout_width="200dp"
         android:layout_height="28dp"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -33,15 +33,22 @@
             android:id="@+id/scanButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@android:color/holo_blue_bright"
             android:onClick="clickDiscover"
-            android:text="Scan for devices" />
+            android:text="Scan for devices"
+            android:textColor="@android:color/background_light"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/connectButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="?attr/actionModeSplitBackground"
             android:onClick="connectToDevice"
-            android:text="Connect" />
+            android:text="Connect"
+            android:textColor="@android:color/background_light"
+            android:textSize="18sp" />
     </LinearLayout>
 
     <TextView
