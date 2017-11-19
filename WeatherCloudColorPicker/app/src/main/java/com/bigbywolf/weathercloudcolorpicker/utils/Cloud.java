@@ -9,6 +9,8 @@ import android.os.Parcelable;
 
 public class Cloud implements Parcelable{
 
+
+    private String device_name = null;
     private String ip = null;
     private int port = 0;
 
@@ -28,9 +30,10 @@ public class Cloud implements Parcelable{
     private int mode = 0;
     private int color = 0;
 
-    public Cloud(String ip, int port, int mode, int color){
+    public Cloud(String ip, int port, String device_name, int mode, int color){
         this.ip = ip;
         this.port = port;
+        this.device_name = device_name;
         this.mode = mode;
         this.color = color;
     }
@@ -101,6 +104,12 @@ public class Cloud implements Parcelable{
         this.color = color;
     }
 
+    public String getDevice_name() {
+        return device_name;
+    }
 
+    public void setDevice_name(String device_name) {
+        this.device_name = device_name;
+    }
 
 }

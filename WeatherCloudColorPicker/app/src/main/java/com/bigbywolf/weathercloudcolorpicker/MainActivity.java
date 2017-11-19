@@ -18,6 +18,9 @@ import android.widget.Toast;
 import com.bigbywolf.weathercloudcolorpicker.utils.Cloud;
 import com.bigbywolf.weathercloudcolorpicker.utils.NsdHelper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -35,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean scanInProgress = false;
     private Button scanButton;
     private int spinnerPosition = 0;
-    private ConnectTask connectTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         deviceSpinner = (Spinner) findViewById(R.id.deviceSpinner);
         scanButton = (Button) findViewById(R.id.scanButton);
 
-        connectTask = new ConnectTask();
         mNsdHelper = new NsdHelper(this);
         mNsdHelper.initializeNsd();
 
@@ -129,31 +130,32 @@ public class MainActivity extends AppCompatActivity {
     public void connectToDevice(View view){
         if (!mNsdHelper.getServiceList().isEmpty()){
 
-//            Log.i("connect", "connect pressed for " + spinnerPosition + " device " + mNsdHelper.getServiceList().get(spinnerPosition).getServiceName());
             NsdServiceInfo serviceInfo = mNsdHelper.resolveFoundService(mNsdHelper.getServiceList().get(spinnerPosition));
 
             if (serviceInfo != null){
 
-//                Log.i("connect", "connected service " + serviceInfo.toString());
-
-//                String sUrl = "http://192.168.1.99:1133/";
                 String sUrl = "http:/" + serviceInfo.getHost() + ":" + serviceInfo.getPort();
 
                 try {
 
+                    ConnectTask connectTask = new ConnectTask();
+
                     String response = connectTask.execute(sUrl).get();
-                    Log.i("connect", "reponse: " + response);
+//                    Log.i("connect", "reponse: " + response);
+
+                    JSONObject jsonObject = new JSONObject(response);
 
                     // if device found switch activity
-                    if (response.contains("connected to esp8266")){
+                    if (jsonObject.has("device")){
 
-                        Cloud cloud = new Cloud(serviceInfo.getHost().toString(), serviceInfo.getPort(), 0, 0);
+                        Toast.makeText(getApplicationContext(), "Device connected", Toast.LENGTH_LONG).show();
+
+                        Cloud cloud = new Cloud(serviceInfo.getHost().toString(), serviceInfo.getPort(), jsonObject.getString("device") , jsonObject.getInt("mode"), jsonObject.getInt("color"));
 
                         Intent i = new Intent(getApplicationContext(), ConnectActivity.class);
                         i.putExtra("com.bigbywolf.weathercloudcolorpicker.utils.Cloud", cloud);
-//                        i.putExtra("ip", serviceInfo.getHost().toString());
-//                        i.putExtra("port", serviceInfo.getPort());
                         startActivity(i);
+
                     } else {
 
                         Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
@@ -162,6 +164,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
 

@@ -2,6 +2,7 @@ package com.bigbywolf.weathercloudcolorpicker;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -53,10 +54,8 @@ public class ConnectActivity extends AppCompatActivity {
 
         Bundle bundle = getIntent().getExtras();
         cloud = bundle.getParcelable("com.bigbywolf.weathercloudcolorpicker.utils.Cloud");
-//        ip = intent.getStringExtra("ip");
-//        port = intent.getIntExtra("port", 0);
 
-        Log.i("intent", "connected to " + cloud.getIp() + " " + cloud.getPort());
+//        Log.i("intent", "connected to " + cloud.getIp() + " " + cloud.getPort());
 
         ipText.setText(cloud.getIp());
         portText.setText(String.valueOf(cloud.getPort()));
@@ -66,73 +65,88 @@ public class ConnectActivity extends AppCompatActivity {
 
     public void modeSelect(View view){
 
-        String sUrl = "http:/" + cloud.getIp() + ":" + cloud.getPort() + "/setting";
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(ConnectActivity.this);
+        builderSingle.setTitle("Select Mode");
 
-        PostTask postTask = new PostTask();
-        try {
-            String response = postTask.execute(sUrl).get();
-            Log.i("mode", "response " + response);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        final ArrayAdapter<Cloud.Mode> arrayAdapter = new ArrayAdapter<Cloud.Mode>(ConnectActivity.this, android.R.layout.select_dialog_singlechoice);
+        arrayAdapter.add(Cloud.Mode.Auto);
+        arrayAdapter.add(Cloud.Mode.Manual);
+        arrayAdapter.add(Cloud.Mode.Clear);
+        arrayAdapter.add(Cloud.Mode.BlueSky);
+        arrayAdapter.add(Cloud.Mode.WhiteClouds);
+        arrayAdapter.add(Cloud.Mode.Overcast);
+        arrayAdapter.add(Cloud.Mode.Sunset);
+        arrayAdapter.add(Cloud.Mode.Rain);
+        arrayAdapter.add(Cloud.Mode.Cloudy);
+//        arrayAdapter.add(Cloud.Mode.Disco);
 
+        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
 
-//        AlertDialog.Builder builderSingle = new AlertDialog.Builder(ConnectActivity.this);
-//        builderSingle.setTitle("Select One Name:-");
-//
-//        final ArrayAdapter<Cloud.Mode> arrayAdapter = new ArrayAdapter<Cloud.Mode>(ConnectActivity.this, android.R.layout.select_dialog_singlechoice);
-//        arrayAdapter.add(Cloud.Mode.Auto);
-//        arrayAdapter.add(Cloud.Mode.Manual);
-//        arrayAdapter.add(Cloud.Mode.BlueSky);
-//
-//
-//        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-//
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                dialog.dismiss();
-//            }
-//        });
-//
-//        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//
-//                Cloud.Mode strName = arrayAdapter.getItem(which);
-//                AlertDialog.Builder builderInner = new AlertDialog.Builder(ConnectActivity.this);
-//
-//                builderInner.setMessage(strName.toString());
-//                builderInner.setTitle("Your Selected Item is");
-//                builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-//
-//                    @Override
-//                    public void onClick(DialogInterface dialog,int which) {
-//                        dialog.dismiss();
-//                    }
-//                });
-//                builderInner.show();
-//            }
-//        });
-//        builderSingle.show();
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                Cloud.Mode cloudMode = arrayAdapter.getItem(which);
+                cloud.setMode(cloudMode.ordinal());
+                AlertDialog.Builder builderInner = new AlertDialog.Builder(ConnectActivity.this);
+
+                builderInner.setMessage(cloudMode.toString());
+                builderInner.setTitle("Your Selected Item is");
+                builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog,int which) {
+
+                        String sUrl = "http:/" + cloud.getIp() + ":" + cloud.getPort() + "/setting";
+
+                        PostTask postTask = new PostTask(cloud, sUrl);
+                        try {
+                            String response = postTask.execute().get();
+                            Log.i("mode", "response " + response);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+
+                        dialog.dismiss();
+                    }
+                });
+                builderInner.show();
+            }
+        });
+        builderSingle.show();
 
     }
 
     public void colorSelect(View view){
 
+        int initColor = -16776961; // default to blue
+
+        if (cloud.getColor() != 0){
+            initColor = cloud.getColor();
+        }
+
         ColorPickerDialogBuilder
 //                .with(getApplicationContext())
                 .with(this)
                 .setTitle("Choose color")
-//                .initialColor(currentBackgroundColor)
+                .initialColor(initColor)
                 .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
                 .density(12)
                 .setOnColorSelectedListener(new OnColorSelectedListener() {
                     @Override
                     public void onColorSelected(int selectedColor) {
+
 //                        toast.("onColorSelected: 0x" + Integer.toHexString(selectedColor));
-                        Log.i("color", "on color seleced " + selectedColor);
+                        Log.i("color", "on color seleced " + selectedColor + " red " + Color.red(selectedColor) + " green " + Color.green(selectedColor) + " blue " + Color.blue(selectedColor) );
+
                     }
                 })
                 .setPositiveButton("ok", new ColorPickerClickListener() {
@@ -140,6 +154,19 @@ public class ConnectActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
 //                        changeBackgroundColor(selectedColor);
                         Log.i("color", "selected color " + selectedColor);
+
+                        cloud.setMode(1); // set mode to manual
+                        cloud.setColor(selectedColor);
+                        String sUrl = "http:/" + cloud.getIp() + ":" + cloud.getPort() + "/setting";
+                        PostTask postTask = new PostTask(cloud, sUrl);
+                        try {
+                            String response = postTask.execute().get();
+                            Log.i("mode", "response " + response);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -151,16 +178,30 @@ public class ConnectActivity extends AppCompatActivity {
                 .show();
     }
 
+    public void disconnect(View view){
+        Intent i = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(i);
+    }
+
 }
 
 // task to send GET request to cloud webserver
-class PostTask extends AsyncTask<String, Integer, String> {
+class PostTask extends AsyncTask<Void, Integer, String> {
 
-    protected String doInBackground(String... urls) {
+    Cloud cloud = null;
+    String deviceUrl = null;
+
+    PostTask(Cloud cloud, String url){
+        this.cloud = cloud;
+        this.deviceUrl = url;
+    }
+
+    protected String doInBackground(Void... voids) {
         try {
-            URL url = null;
-            url = new URL(urls[0]);
-            Log.i("request", "url " + url.toString());
+//            URL url = new URL(urls[0]);
+            URL url = new URL(deviceUrl);
+//            Log.i("request", "url " + url.toString());
+            Log.i("request", "url " + deviceUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
@@ -170,8 +211,8 @@ class PostTask extends AsyncTask<String, Integer, String> {
             conn.setDoInput(true);
 
             JSONObject jsonParam = new JSONObject();
-            jsonParam.put("mode", 1);
-            jsonParam.put("color", 1);
+            jsonParam.put("mode", cloud.getMode());
+            jsonParam.put("color", cloud.getColor());
 
             Log.i("JSON", jsonParam.toString());
             DataOutputStream os = new DataOutputStream(conn.getOutputStream());
@@ -186,13 +227,6 @@ class PostTask extends AsyncTask<String, Integer, String> {
 
             conn.disconnect();
 
-//
-//            BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-//            String content = "", line;
-//            while ((line = rd.readLine()) != null) {
-//                content += line + "\n";
-//            }
-//            Log.i("request", content);
             return null;
 
         } catch (Exception e) {
@@ -205,6 +239,8 @@ class PostTask extends AsyncTask<String, Integer, String> {
 
     protected void onProgressUpdate(Integer... progress) {
     }
+
+
 
     protected void onPostExecute(String result) {
         // this is executed on the main thread after the process is over
