@@ -238,7 +238,6 @@ class PostTask extends AsyncTask<Void, Integer, String> {
             e.printStackTrace();
             Log.i("request", "error");
 
-//            Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
             return "error";
         }
 

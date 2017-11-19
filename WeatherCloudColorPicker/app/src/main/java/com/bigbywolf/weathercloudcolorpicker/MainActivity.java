@@ -56,15 +56,15 @@ public class MainActivity extends AppCompatActivity {
         deviceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.i("spinner", "position " + position);
+//                Log.i("spinner", "position " + position);
                 String selectedItemText = (String) parent.getItemAtPosition(position);
-                Log.i("spinner", "position " + selectedItemText);
+//                Log.i("spinner", "position " + selectedItemText);
                 spinnerPosition = position;
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                Log.i("spinner", "nothing pressed");
+//                Log.i("spinner", "nothing pressed");
 
             }
         });
