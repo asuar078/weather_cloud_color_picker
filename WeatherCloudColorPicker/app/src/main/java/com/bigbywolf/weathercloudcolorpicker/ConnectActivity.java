@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.bigbywolf.weathercloudcolorpicker.utils.Cloud;
 import com.flask.colorpicker.ColorPickerView;
@@ -109,6 +110,9 @@ public class ConnectActivity extends AppCompatActivity {
                         try {
                             String response = postTask.execute().get();
                             Log.i("mode", "response " + response);
+                            if (response == "error"){
+                                Toast.makeText(getApplicationContext(), "Error could not send", Toast.LENGTH_LONG).show();
+                            }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (ExecutionException e) {
@@ -162,6 +166,9 @@ public class ConnectActivity extends AppCompatActivity {
                         try {
                             String response = postTask.execute().get();
                             Log.i("mode", "response " + response);
+                            if (response == "error"){
+                                Toast.makeText(getApplicationContext(), "Error could not send", Toast.LENGTH_LONG).show();
+                            }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (ExecutionException e) {
@@ -198,9 +205,7 @@ class PostTask extends AsyncTask<Void, Integer, String> {
 
     protected String doInBackground(Void... voids) {
         try {
-//            URL url = new URL(urls[0]);
             URL url = new URL(deviceUrl);
-//            Log.i("request", "url " + url.toString());
             Log.i("request", "url " + deviceUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
@@ -227,12 +232,14 @@ class PostTask extends AsyncTask<Void, Integer, String> {
 
             conn.disconnect();
 
-            return null;
+            return "ok";
 
         } catch (Exception e) {
             e.printStackTrace();
             Log.i("request", "error");
-            return null;
+
+//            Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
+            return "error";
         }
 
     }

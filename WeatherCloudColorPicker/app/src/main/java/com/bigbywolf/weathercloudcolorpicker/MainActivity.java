@@ -163,10 +163,19 @@ public class MainActivity extends AppCompatActivity {
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
                 } catch (ExecutionException e) {
                     e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
+                } catch (IllegalStateException e){
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
+                } catch (Exception e){
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Error could not connect", Toast.LENGTH_LONG).show();
                 }
 
             }

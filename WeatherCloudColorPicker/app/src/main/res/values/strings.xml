@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">WeatherCloudColorPicker</string>
-    <string name="title_activity_connect">ConnectActivity</string>
+    <string name="app_name">Weather Cloud Color Picker</string>
+    <string name="title_activity_connect">Connect to Device</string>
 </resources>
